@@ -59,11 +59,12 @@ int main()
 		0.5f, -0.5f, 0.0f,
 		0.0f, 0.5f, 0.0f
 	};
-	// glGenBuffers creates memory in the GPU for a buffer (VBO).
+	// glGenBuffers creates memory in the GPU for a buffer.
+	// sets the created buffer to the name VBO so we can access it.
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
 	// glBindBuffer sets buffer in the GPU to what you assign. In this case, 
-	// it sets the array buffer in the GPU to VBO.
+	// it sets the array buffer in the GPU to VBO so we can modify it. 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	// glBufferData transfers the vertex data to the VBO. 
 	// In this case, we transfer vertices to the array buffer in the GPU.
