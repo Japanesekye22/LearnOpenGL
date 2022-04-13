@@ -59,14 +59,16 @@ int main()
 		0.5f, -0.5f, 0.0f,
 		0.0f, 0.5f, 0.0f
 	};
-	// glGenBuffers assigns 1 buffer object to VBO. 
-	// A buffer object represents memory allocated by OpenGL for the GPU.
+	// glGenBuffers creates memory in the GPU for a buffer (VBO).
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
-	// Binds the buffer. creates the buffer object. this activates object VBO.
-	// Now you can use or manipulate VBO.
-	// There can only be one object of each type active at a time. 
+	// glBindBuffer sets buffer in the GPU to what you assign. In this case, 
+	// it sets the array buffer in the GPU to VBO.
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// glBufferData transfers the vertex data to the VBO. 
+	// In this case, we transfer vertices to the array buffer in the GPU.
+	// GL_STATIC_DRAW is the function type for performance. This for example
+	// is for drawing a static object.
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 
