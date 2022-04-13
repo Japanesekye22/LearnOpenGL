@@ -70,6 +70,7 @@ int main()
 	// In this case, we transfer vertices to the array buffer in the GPU.
 	// GL_STATIC_DRAW is the function type for performance. This for example
 	// is for drawing a static object.
+	// We dont need to specify VBO because VBO is the GL_ARRAY_BUFFER
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 
