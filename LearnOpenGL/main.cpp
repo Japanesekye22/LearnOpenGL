@@ -10,6 +10,20 @@ void processInput(GLFWwindow* window);
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
+const char* vertexShaderSource = "#version 460 core\n"
+	"layout (location = 0) in vec3 aPos;\n"
+	"void main()\n"
+	"{\n"
+	" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n"
+	"}\0";
+
+const char* fragmentShaderSource = "#version 460 core\n"
+	"out vec4 FragColor;\n"
+	"void main()\n"
+	"{\n"
+	" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f;\n"
+	"}\n\0";
+
 
 
 int main()
@@ -51,7 +65,8 @@ int main()
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 
-
+	// -----------Vertex Input------------
+	// 
 	// Vertices for a triangle
 	float vertices[] =
 	{
@@ -74,6 +89,65 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 
+	// -----------Vertex Shader------------
+	//
+	// Creates an object vertexShader of type GL_VERTEX_SHADER (vertex shader).
+	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	// Attach shader source code (defined above) to vertexShader and compile.
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+
+	// Check if compilation was successful.
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" <<
+			infoLog << std::endl;
+	}
+
+
+	// -----------Fragment Shader------------
+	//
+	// Creates an object fragmentShader of type GL_FRAGMENT_SHADER and compile
+	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	// Attach shader source code (defined above) to fragmentShader) and compile.
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	// Check if compilation was successful.
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "ERROR::FRAGMENT::VERTEX::COMPILATION_FAILED\n" <<
+			infoLog << std::endl;
+	}
+
+
+	// ----------Link Shaders--------------
+	//
+	// Create shader program object.
+	unsigned int shaderProgram = glCreateProgram();
+	// Attach the shaders to program.
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	// Link the shaders together.
+	glLinkProgram(shaderProgram);
+
+	// Check if linking successful.
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" <<
+			infoLog << std::endl;
+	}
+	// delete shaders
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 	
 
 
@@ -89,6 +163,9 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		// Clears the color buffer.
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Draw triangle
+		glUseProgram(shaderProgram);
 
 		// Front render is what you see on screen. once the back render 
 		// finishes rendering it swaps with the front render. this avoids 
