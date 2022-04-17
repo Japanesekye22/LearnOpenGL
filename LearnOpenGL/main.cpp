@@ -102,6 +102,7 @@ int main()
 	}
 
 
+
 	// ----------Link Shaders--------------
 	//
 	// Create shader program object.
@@ -127,32 +128,49 @@ int main()
 	// -----------Vertex Input------------
 	// 
 	// Vertices for a triangle
-	float vertices[] =
+	float vertices1[] =
 	{
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f
+		-0.2f, 0.2f, 0.0f,
+		-0.5f, 0.2f, 0.0f,
+		-0.2f, 0.5f, 0.0f,
 	};
-	unsigned int indices[] =
+	unsigned int indices1[] =
 	{
-		0, 1, 3,
-		1, 2, 3
+		0, 1, 2
+	};
+	float vertices2[] =
+	{
+		 0.2f, 0.2f, 0.0f,
+		 0.2f, 0.5f, 0.0f,
+		 0.5f, 0.2f, 0.0f
+	};
+	unsigned int indices2[] =
+	{
+		0, 1, 2
 	};
 	// Generate buffers and vertex array.
-	unsigned int VBO, VAO, EBO;
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	glGenVertexArrays(1, &VAO);
+	unsigned int VBOs[2], VAOs[2], EBOs[2];
+	glGenBuffers(2, VBOs);
+	glGenBuffers(2, EBOs);
+	glGenVertexArrays(2, VAOs);
 
 	// Bind buffers and vertex array to the GPU's elements.
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBindVertexArray(VAOs[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
 
 	// Add values into the buffers.
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices1), indices1, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+
+	glBindVertexArray(VAOs[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[1]);
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices2), indices2, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+
+
 
 	// Tell OpenGL how to interpret vertex data.
 	// Attribute position, size of attribute (Ex. vec3 is 3), type of data,
@@ -180,8 +198,11 @@ int main()
 		// Draw triangle
 		glUseProgram(shaderProgram);
 		// Since we only have one VAO, no need to bind every frame.
-		glBindVertexArray(VAO);
+		glBindVertexArray(VAOs[0]);
 		// Draws from vertex array. Primitive, starting index, how many vertices.
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glBindVertexArray(VAOs[1]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// Front render is what you see on screen. once the back render 
