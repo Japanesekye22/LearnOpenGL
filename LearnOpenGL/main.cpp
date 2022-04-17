@@ -11,26 +11,22 @@ const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
 // Shader for vertex data.
-const char *vertexShaderSource = "#version 460 core\n"
-	"layout (location = 0) in vec3 aPos;\n"
-	"void main()\n"
-	"{\n"
-	" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n"
-	"}\0";
-// Shader for color data.
-const char *fragmentShaderSource = "#version 460 core\n"
-	"out vec4 FragColor;\n"
-	"void main()\n"
-	"{\n"
-	" FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
-	"}\n\0";
-
-// Shader for color data.
-const char* fragmentShaderSource2 = "#version 460 core\n"
-"out vec4 FragColor;\n"
+const char* vertexShaderSource = "#version 460 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"layout (location = 1) in vec3 aColor;\n"
+"out vec3 ourColor;\n"
 "void main()\n"
 "{\n"
-" FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
+" gl_Position = vec4(aPos, 1.0f);\n"
+" ourColor = aColor;\n"
+"}\0";
+// Shader for color data.
+const char* fragmentShaderSource = "#version 460 core\n"
+"out vec4 FragColor;\n"
+"in vec3 ourColor;\n"
+"void main()\n"
+"{\n"
+" FragColor = vec4(ourColor, 1.0f);\n"
 "}\n\0";
 
 
@@ -109,15 +105,6 @@ int main()
 			infoLog << std::endl;
 	}
 
-	// -----------Fragment Shader2------------
-	//
-	// Create a fragment shader object, attach source code, then compile.
-	unsigned int fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
-	glCompileShader(fragmentShader2);
-
-
-
 
 	// ----------Link Shaders--------------
 	//
@@ -140,89 +127,50 @@ int main()
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	// ----------Second Shader Program--------------
-	//
-	// Create shader program object.
-	unsigned int shaderProgram2 = glCreateProgram();
-	// Attach the shaders to program, then link them together.
-	glAttachShader(shaderProgram2, vertexShader);
-	glAttachShader(shaderProgram2, fragmentShader2);
-	glLinkProgram(shaderProgram2);
-
 
 	// -----------Vertex Input------------
 	// 
 	// Vertices for a triangle
-	float vertices1[] =
+	float vertices[] =
 	{
-		-0.6f, -0.8f, 0.0f,
-		-0.3f, -0.8f, 0.0f,
-		-0.6f, 0.5f, 0.0f,
-		-0.3f, 0.5f, 0.0f,
-		-0.3f, -0.6f, 0.0f,
-		 0.3f, -0.6f, 0.0f,
-		 0.3f, 0.5f, 0.0f,
-		 0.6f, 0.5f, 0.0f,
-		 0.3f, -0.8f, 0.0f,
-		 0.6f, -0.8f, 0.0f
+		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
 	};
-	unsigned int indices1[] =
+	unsigned int indices[] =
 	{
-		0, 1, 2,
-		2, 3, 1,
-		3, 4, 5, 
-		3, 5, 6,
-		6, 7, 8,
-		7, 8, 9
-	};
-	float vertices2[] =
-	{
-		 0.1f, 0.1f, 0.0f,
-		 0.1f, 0.4f, 0.0f,
-		 0.7f, 0.1f, 0.0f,
-		 0.7f, 0.4f, 0.0f
-	};
-	unsigned int indices2[] =
-	{
-		0, 1, 2,
-		1, 2, 3
+		0, 1, 2
 	};
 	// Generate buffers and vertex array.
-	unsigned int VBOs[2], VAOs[2], EBOs[2];
-	glGenBuffers(2, VBOs);
-	glGenBuffers(2, EBOs);
-	glGenVertexArrays(2, VAOs);
+	unsigned int VBO, VAO, EBO;
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, &VAO);
 
 	// Bind buffers and vertex array to the GPU's elements.
-	glBindVertexArray(VAOs[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
 	// Add values into the buffers.
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices1), indices1, GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
-
-	glBindVertexArray(VAOs[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[1]);
-
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices2), indices2, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
-
-
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Tell OpenGL how to interpret vertex data.
 	// Attribute position, size of attribute (Ex. vec3 is 3), type of data,
 	// whether to normalize data (0 to 1), stride: size of each vertex data, 
 	// offset of where position data begins.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	// Enable vertex attribute.
 	glEnableVertexAttribArray(0);
-	
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 
 
 	//------------------------------Render Loop-----------------------------------
-	while(!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window))
 	{
 		// Input
 		processInput(window);
@@ -237,14 +185,9 @@ int main()
 		// Draw triangle
 		glUseProgram(shaderProgram);
 		// Since we only have one VAO, no need to bind every frame.
-		glBindVertexArray(VAOs[0]);
-		// Draws from vertex array using EBO.
-		// Primitive, number of vertices, type of EBO value, offset.
-		glDrawElements(GL_TRIANGLES, sizeof(indices1), GL_UNSIGNED_INT, 0);
-
-		glUseProgram(shaderProgram2);
-		glBindVertexArray(VAOs[1]);
-		glDrawElements(GL_TRIANGLES, sizeof(indices2), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(VAO);
+		// Draws from vertex array. Primitive, starting index, how many vertices.
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// Front render is what you see on screen. once the back render 
 		// finishes rendering it swaps with the front render. this avoids 
