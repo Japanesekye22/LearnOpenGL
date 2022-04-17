@@ -22,8 +22,16 @@ const char *fragmentShaderSource = "#version 460 core\n"
 	"out vec4 FragColor;\n"
 	"void main()\n"
 	"{\n"
-	" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+	" FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
 	"}\n\0";
+
+// Shader for color data.
+const char* fragmentShaderSource2 = "#version 460 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+" FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
+"}\n\0";
 
 
 
@@ -101,6 +109,14 @@ int main()
 			infoLog << std::endl;
 	}
 
+	// -----------Fragment Shader2------------
+	//
+	// Create a fragment shader object, attach source code, then compile.
+	unsigned int fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
+	glCompileShader(fragmentShader2);
+
+
 
 
 	// ----------Link Shaders--------------
@@ -124,29 +140,52 @@ int main()
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	// ----------Second Shader Program--------------
+	//
+	// Create shader program object.
+	unsigned int shaderProgram2 = glCreateProgram();
+	// Attach the shaders to program, then link them together.
+	glAttachShader(shaderProgram2, vertexShader);
+	glAttachShader(shaderProgram2, fragmentShader2);
+	glLinkProgram(shaderProgram2);
+
 
 	// -----------Vertex Input------------
 	// 
 	// Vertices for a triangle
 	float vertices1[] =
 	{
-		-0.2f, 0.2f, 0.0f,
-		-0.5f, 0.2f, 0.0f,
-		-0.2f, 0.5f, 0.0f,
+		-0.6f, -0.8f, 0.0f,
+		-0.3f, -0.8f, 0.0f,
+		-0.6f, 0.5f, 0.0f,
+		-0.3f, 0.5f, 0.0f,
+		-0.3f, -0.6f, 0.0f,
+		 0.3f, -0.6f, 0.0f,
+		 0.3f, 0.5f, 0.0f,
+		 0.6f, 0.5f, 0.0f,
+		 0.3f, -0.8f, 0.0f,
+		 0.6f, -0.8f, 0.0f
 	};
 	unsigned int indices1[] =
 	{
-		0, 1, 2
+		0, 1, 2,
+		2, 3, 1,
+		3, 4, 5, 
+		3, 5, 6,
+		6, 7, 8,
+		7, 8, 9
 	};
 	float vertices2[] =
 	{
-		 0.2f, 0.2f, 0.0f,
-		 0.2f, 0.5f, 0.0f,
-		 0.5f, 0.2f, 0.0f
+		 0.1f, 0.1f, 0.0f,
+		 0.1f, 0.4f, 0.0f,
+		 0.7f, 0.1f, 0.0f,
+		 0.7f, 0.4f, 0.0f
 	};
 	unsigned int indices2[] =
 	{
-		0, 1, 2
+		0, 1, 2,
+		1, 2, 3
 	};
 	// Generate buffers and vertex array.
 	unsigned int VBOs[2], VAOs[2], EBOs[2];
@@ -202,11 +241,13 @@ int main()
 		glUseProgram(shaderProgram);
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAOs[0]);
-		// Draws from vertex array. Primitive, starting index, how many vertices.
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// Draws from vertex array using EBO.
+		// Primitive, number of vertices, type of EBO value, offset.
+		glDrawElements(GL_TRIANGLES, sizeof(indices1), GL_UNSIGNED_INT, 0);
 
+		glUseProgram(shaderProgram2);
 		glBindVertexArray(VAOs[1]);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, sizeof(indices2), GL_UNSIGNED_INT, 0);
 
 		// Front render is what you see on screen. once the back render 
 		// finishes rendering it swaps with the front render. this avoids 
