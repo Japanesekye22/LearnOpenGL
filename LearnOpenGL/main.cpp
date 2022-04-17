@@ -10,18 +10,19 @@ void processInput(GLFWwindow* window);
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
-const char* vertexShaderSource = "#version 460 core\n"
+// Shader for vertex data.
+const char *vertexShaderSource = "#version 460 core\n"
 	"layout (location = 0) in vec3 aPos;\n"
 	"void main()\n"
 	"{\n"
 	" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n"
 	"}\0";
-
-const char* fragmentShaderSource = "#version 460 core\n"
+// Shader for color data.
+const char *fragmentShaderSource = "#version 460 core\n"
 	"out vec4 FragColor;\n"
 	"void main()\n"
 	"{\n"
-	" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f;\n"
+	" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}\n\0";
 
 
@@ -65,35 +66,10 @@ int main()
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 
-	// -----------Vertex Input------------
-	// 
-	// Vertices for a triangle
-	float vertices[] =
-	{
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f
-	};
-	// glGenBuffers creates memory in the GPU for a buffer.
-	// sets the created buffer to the name VBO so we can access it.
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	// glBindBuffer sets buffer in the GPU to what you assign. In this case, 
-	// it sets the array buffer in the GPU to VBO so we can modify it. 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// glBufferData transfers the vertex data to the VBO. 
-	// In this case, we transfer vertices to the array buffer in the GPU.
-	// GL_STATIC_DRAW is the function type for performance. This for example
-	// is for drawing a static object.
-	// We dont need to specify VBO because VBO is the GL_ARRAY_BUFFER
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-
 	// -----------Vertex Shader------------
 	//
-	// Creates an object vertexShader of type GL_VERTEX_SHADER (vertex shader).
+	// Create a vertex shader, attach source code, then compile.
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	// Attach shader source code (defined above) to vertexShader and compile.
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
 
@@ -111,9 +87,8 @@ int main()
 
 	// -----------Fragment Shader------------
 	//
-	// Creates an object fragmentShader of type GL_FRAGMENT_SHADER and compile
+	// Create a fragment shader object, attach source code, then compile.
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	// Attach shader source code (defined above) to fragmentShader) and compile.
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
 
@@ -131,10 +106,9 @@ int main()
 	//
 	// Create shader program object.
 	unsigned int shaderProgram = glCreateProgram();
-	// Attach the shaders to program.
+	// Attach the shaders to program, then link them together.
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
-	// Link the shaders together.
 	glLinkProgram(shaderProgram);
 
 	// Check if linking successful.
@@ -148,6 +122,45 @@ int main()
 	// delete shaders
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+
+
+	// -----------Vertex Input------------
+	// 
+	// Vertices for a triangle
+	float vertices[] =
+	{
+		0.5f, 0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f
+	};
+	unsigned int indices[] =
+	{
+		0, 1, 3,
+		1, 2, 3
+	};
+	// Generate buffers and vertex array.
+	unsigned int VBO, VAO, EBO;
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, &VAO);
+
+	// Bind buffers and vertex array to the GPU's elements.
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+	// Add values into the buffers.
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Tell OpenGL how to interpret vertex data.
+	// Attribute position, size of attribute (Ex. vec3 is 3), type of data,
+	// whether to normalize data (0 to 1), stride: size of each vertex data, 
+	// offset of where position data begins.
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// Enable vertex attribute.
+	glEnableVertexAttribArray(0);
 	
 
 
@@ -166,6 +179,10 @@ int main()
 
 		// Draw triangle
 		glUseProgram(shaderProgram);
+		// Since we only have one VAO, no need to bind every frame.
+		glBindVertexArray(VAO);
+		// Draws from vertex array. Primitive, starting index, how many vertices.
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// Front render is what you see on screen. once the back render 
 		// finishes rendering it swaps with the front render. this avoids 
@@ -174,6 +191,11 @@ int main()
 		// Checks for input events.
 		glfwPollEvents();
 	}
+
+	// deallocate all resources once closed.
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteProgram(shaderProgram);
 
 	glfwTerminate();
 	return 0;
