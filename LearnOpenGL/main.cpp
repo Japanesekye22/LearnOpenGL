@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "shader.h"
 
 #include <iostream>
 
@@ -9,25 +10,6 @@ void processInput(GLFWwindow* window);
 
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
-
-// Shader for vertex data.
-const char* vertexShaderSource = "#version 460 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec3 aColor;\n"
-"out vec3 ourColor;\n"
-"void main()\n"
-"{\n"
-" gl_Position = vec4(aPos, 1.0f);\n"
-" ourColor = aColor;\n"
-"}\0";
-// Shader for color data.
-const char* fragmentShaderSource = "#version 460 core\n"
-"out vec4 FragColor;\n"
-"in vec3 ourColor;\n"
-"void main()\n"
-"{\n"
-" FragColor = vec4(ourColor, 1.0f);\n"
-"}\n\0";
 
 
 
@@ -69,63 +51,9 @@ int main()
 	// Set viewport inside the window
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
+	// -------------Shaders---------------
 
-	// -----------Vertex Shader------------
-	//
-	// Create a vertex shader, attach source code, then compile.
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	// Check if compilation was successful.
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" <<
-			infoLog << std::endl;
-	}
-
-
-	// -----------Fragment Shader------------
-	//
-	// Create a fragment shader object, attach source code, then compile.
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	// Check if compilation was successful.
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::FRAGMENT::VERTEX::COMPILATION_FAILED\n" <<
-			infoLog << std::endl;
-	}
-
-
-	// ----------Link Shaders--------------
-	//
-	// Create shader program object.
-	unsigned int shaderProgram = glCreateProgram();
-	// Attach the shaders to program, then link them together.
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	// Check if linking successful.
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" <<
-			infoLog << std::endl;
-	}
-	// delete shaders
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	Shader ourShader("shader.vs", "shader.fs");
 
 
 	// -----------Vertex Input------------
@@ -182,8 +110,8 @@ int main()
 		// Clears the color buffer.
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Draw triangle
-		glUseProgram(shaderProgram);
+		// Use shader program
+		ourShader.use();
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAO);
 		// Draws from vertex array. Primitive, starting index, how many vertices.
@@ -200,7 +128,6 @@ int main()
 	// deallocate all resources once closed.
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteProgram(shaderProgram);
 
 	glfwTerminate();
 	return 0;
@@ -211,7 +138,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
-
 
 // Input function to organize all the inputs.
 void processInput(GLFWwindow* window)
