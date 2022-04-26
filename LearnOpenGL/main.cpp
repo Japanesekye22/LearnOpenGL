@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "shader.h"
+#include "stb_image.h"
 
 #include <iostream>
 
@@ -52,22 +53,26 @@ int main()
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 	// -------------Shaders---------------
-
+	//
 	Shader ourShader("shader.vs", "shader.fs");
 
 
 	// -----------Vertex Input------------
 	// 
-	// Vertices for a triangle
+	// Vertices for a triangle.
 	float vertices[] =
 	{
-		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+		// positions         // colors            // textures
+		 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f, // top right
+		 0.5f, -0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f, // bottom right
+		-0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f, // bottom left
+		-0.5f,  0.5f,  0.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f  // top left
 	};
+	// Order to connect vertices.
 	unsigned int indices[] =
 	{
-		0, 1, 2
+		0, 1, 3, // first triangle
+		1, 2, 3  // second triangle
 	};
 	// Generate buffers and vertex array.
 	unsigned int VBO, VAO, EBO;
@@ -88,12 +93,51 @@ int main()
 	// Attribute position, size of attribute (Ex. vec3 is 3), type of data,
 	// whether to normalize data (0 to 1), stride: size of each vertex data, 
 	// offset of where position data begins.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	// Enable vertex attribute.
-	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// texture attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+
+
+
+	// ----------- Textures ------------
+	// 
+	// Generate texture object
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture); // Now all GL_TEXTURE_2D operations references texture.
+	// Define wrapping mode. 2D, S axis (texture is str not xyz), wrapping type outside 0 or 1.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	
+	// Define filter mode. Texture downscaled = nearest (no filter), upscaled = linear.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Load imge
+	int width, height, nrChannels; // nrChannels = number of color channels.
+	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+
+	if (data)
+	{
+		// Generate textures and mipmap
+		// Target, mipmap level, color data, width, height, 0, Image format, data type, actual image.
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
 
 
 
@@ -114,6 +158,8 @@ int main()
 		ourShader.use();
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAO);
+		// Bind texture.
+		glBindTexture(GL_TEXTURE_2D, texture);
 		// Draws from vertex array. Primitive, starting index, how many vertices.
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
