@@ -12,6 +12,8 @@ void processInput(GLFWwindow* window);
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
+float mixValue = 0.2f;
+
 
 
 int main()
@@ -62,11 +64,11 @@ int main()
 	// Vertices for a triangle.
 	float vertices[] =
 	{
-		// positions         // colors            // textures
-		 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f, // top right
-		 0.5f, -0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f, // bottom right
-		-0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f, // bottom left
-		-0.5f,  0.5f,  0.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f  // top left
+		 // positions           // colors              // textures
+		 0.5f,  0.5f,  0.0f,    1.0f,  0.0f,  0.0f,    1.0f,  1.0f, // top right
+		 0.5f, -0.5f,  0.0f,    0.0f,  1.0f,  0.0f,    1.0f,  0.0f, // bottom right
+		-0.5f, -0.5f,  0.0f,    0.0f,  0.0f,  1.0f,    0.0f,  0.0f, // bottom left
+		-0.5f,  0.5f,  0.0f,    1.0f,  1.0f,  0.0f,    0.0f,  1.0f  // top left
 	};
 	// Order to connect vertices.
 	unsigned int indices[] =
@@ -107,21 +109,24 @@ int main()
 
 
 
-	// ----------- Textures ------------
+	// ----------- Texture 1 ------------
 	// 
 	// Generate texture object
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture); // Now all GL_TEXTURE_2D operations references texture.
+	unsigned int texture1;
+	// Tell OpenGL to flip textures.
+	stbi_set_flip_vertically_on_load(true);
+
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1); // Now all GL_TEXTURE_2D operations references texture.
 	// Define wrapping mode. 2D, S axis (texture is str not xyz), wrapping type outside 0 or 1.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	
 	// Define filter mode. Texture downscaled = nearest (no filter), upscaled = linear.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	// Load imge
+	// Load image
 	int width, height, nrChannels; // nrChannels = number of color channels.
 	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 
@@ -138,7 +143,32 @@ int main()
 	}
 	stbi_image_free(data);
 
+	// ----------- Texture 2 ----------
+	//
+	unsigned int texture2;
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
+	data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
+	// Tell shader which sampler goes with which texture unit
+	ourShader.use();
+	ourShader.setInt("texture1", 0);
+	ourShader.setInt("texture2", 1);
 
 
 	//------------------------------Render Loop-----------------------------------
@@ -151,15 +181,21 @@ int main()
 
 		// Sets the color when the color buffer is cleared.
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		// Clears the color buffer.
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// Bind textures to texture units
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+
+		ourShader.setFloat("mixValue", mixValue);
+		std::cout << mixValue << std::endl;
 		// Use shader program
 		ourShader.use();
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAO);
-		// Bind texture.
-		glBindTexture(GL_TEXTURE_2D, texture);
 		// Draws from vertex array. Primitive, starting index, how many vertices.
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -192,5 +228,22 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		mixValue += 0.01f;
+		if (mixValue >= 1.0f)
+		{
+			mixValue = 1.0f;
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		mixValue -= 0.01f;
+		if (mixValue <= 0.0f)
+		{
+			mixValue = 0.0f;
+		}
 	}
 }

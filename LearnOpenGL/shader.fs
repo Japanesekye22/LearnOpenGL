@@ -4,10 +4,12 @@ out vec4 FragColor;
 in vec3 ourColor;
 in vec2 TexCoord;
 
-uniform sampler2D ourTexture; // sampler2D type to pass texture object.
+uniform sampler2D texture1; // sampler2D type to pass texture object.
+uniform sampler2D texture2;
+uniform float mixValue;
 
 void main()
 {
-    // Calls texture function. texture sampler, texture coordinates.
-    FragColor = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0); // can multiply with color
+    // Mixes two textures with last value.
+    FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), mixValue);
 }
