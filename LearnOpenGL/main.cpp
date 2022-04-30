@@ -1,5 +1,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "shader.h"
 #include "stb_image.h"
 
@@ -15,10 +20,8 @@ const int SCR_HEIGHT = 600;
 float mixValue = 0.2f;
 
 
-
 int main()
 {
-
 	//----------------------GLFW and GLAD initialization--------------------------
 	// Initializes glfw
 	glfwInit();
@@ -189,11 +192,22 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-
+		// Input change mix value
 		ourShader.setFloat("mixValue", mixValue);
-		std::cout << mixValue << std::endl;
+
+		// Transformations
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
 		// Use shader program
 		ourShader.use();
+
+		// Send transformation data to shader.
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		// uniform location, matrix count, transpose?, matrix data.
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAO);
 		// Draws from vertex array. Primitive, starting index, how many vertices.
