@@ -5,8 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.h"
-#include "stb_image.h"
+#include "Classes/shader.h"
+#include "Classes/stb_image.h"
 
 #include <iostream>
 
@@ -53,14 +53,12 @@ int main()
 
 	//------------------------Main OpenGL Functions-------------------------------
 
-
 	// Set viewport inside the window
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 	// -------------Shaders---------------
 	//
-	Shader ourShader("shader.vs", "shader.fs");
-
+	Shader ourShader("Classes/shader.vs", "Classes/shader.fs");
 
 	// -----------Vertex Input------------
 	// 
@@ -110,8 +108,6 @@ int main()
 	glEnableVertexAttribArray(2);
 
 
-
-
 	// ----------- Texture 1 ------------
 	// 
 	// Generate texture object
@@ -131,7 +127,7 @@ int main()
 
 	// Load image
 	int width, height, nrChannels; // nrChannels = number of color channels.
-	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("Images/container.jpg", &width, &height, &nrChannels, 0);
 
 	if (data)
 	{
@@ -156,7 +152,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	data = stbi_load("Images/awesomeface.png", &width, &height, &nrChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -196,6 +192,7 @@ int main()
 		ourShader.setFloat("mixValue", mixValue);
 
 		// Transformations
+		// Create identity matrix with the transformations
 		glm::mat4 trans = glm::mat4(1.0f);
 		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
 		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -203,16 +200,21 @@ int main()
 		// Use shader program
 		ourShader.use();
 
-		// Send transformation data to shader.
+		// Get location of uniform variable
 		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-		// uniform location, matrix count, transpose?, matrix data.
+		// Assign uniform variable. uniform location, matrix count, transpose?, matrix data.
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAO);
-		// Draws from vertex array. Primitive, starting index, how many vertices.
+		// Draws from vertex array. Primitive, how many vertices, type of indices, location.
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+		trans = glm::translate(trans, glm::vec3(0.5f, 0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime() * 3, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
 		// Front render is what you see on screen. once the back render 
 		// finishes rendering it swaps with the front render. this avoids 
 		// artifacts if using one buffer.
