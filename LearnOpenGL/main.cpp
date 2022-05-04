@@ -65,17 +65,70 @@ int main()
 	// Vertices for a triangle.
 	float vertices[] =
 	{
-		 // positions           // colors              // textures
-		 0.5f,  0.5f,  0.0f,    1.0f,  0.0f,  0.0f,    1.0f,  1.0f, // top right
-		 0.5f, -0.5f,  0.0f,    0.0f,  1.0f,  0.0f,    1.0f,  0.0f, // bottom right
-		-0.5f, -0.5f,  0.0f,    0.0f,  0.0f,  1.0f,    0.0f,  0.0f, // bottom left
-		-0.5f,  0.5f,  0.0f,    1.0f,  1.0f,  0.0f,    0.0f,  1.0f  // top left
+		 // position            // texture
+		 -0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
+		  0.5f, -0.5f, -0.5f,   1.0f, 0.0f,
+		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		 -0.5f,  0.5f, -0.5f,   0.0f, 1.0f,
+		 -0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
+
+		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		  0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
+		  0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
+		  0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
+		 -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,
+		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+
+		 -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		 -0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		 -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+
+		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		  0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		  0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		  0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+
+		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		  0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
+		  0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
+		  0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
+		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+
+		 -0.5f,  0.5f, -0.5f,   0.0f, 1.0f,
+		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		 -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,
+		 -0.5f,  0.5f, -0.5f,   0.0f, 1.0f
+
 	};
 	// Order to connect vertices.
 	unsigned int indices[] =
 	{
 		0, 1, 3, // first triangle
 		1, 2, 3  // second triangle
+	};
+
+	glm::vec3 cubePositions[] =
+	{
+		glm::vec3( 0.0f, -1.5f,  0.0f),
+		glm::vec3( 2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3( 2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3( 1.3f, -2.0f, -2.5f),
+		glm::vec3( 1.5f,  2.0f, -2.5f),
+		glm::vec3( 1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+
 	};
 	// Generate buffers and vertex array.
 	unsigned int VBO, VAO, EBO;
@@ -98,14 +151,11 @@ int main()
 	// offset of where position data begins.
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 	// texture attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 
 	// ----------- Texture 1 ------------
@@ -169,6 +219,9 @@ int main()
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 
+	// Enable depth buffer (Z index)
+	glEnable(GL_DEPTH_TEST);
+
 
 	//------------------------------Render Loop-----------------------------------
 	while (!glfwWindowShouldClose(window))
@@ -176,11 +229,12 @@ int main()
 		// Input
 		processInput(window);
 
-		// Rendering commands
+		// Input change mix value
+		ourShader.setFloat("mixValue", mixValue);
 
 		// Sets the color when the color buffer is cleared.
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffer
 
 		// Bind textures to texture units
 		glActiveTexture(GL_TEXTURE0);
@@ -188,38 +242,39 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		// Input change mix value
-		ourShader.setFloat("mixValue", mixValue);
-
 		// Activate shader program
 		ourShader.use();
 
-		// Create model matrix
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		// Create view matrix
+
+		// ----------- Transformations -----------
+		// 
+		// Create model, view, and projection matrix
 		glm::mat4 view = glm::mat4(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); // moves away.
-		// Create projection matrix
-		glm::mat4 projection;
+		glm::mat4 projection = glm::mat4(1.0f);
+
+		// Set uniform for matrices
+		view = glm::translate(view, glm::vec3(1.0f, 0.0f, -3.0f)); // moves away.
 		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-		// Set uniforms for the transformation matrices
-		int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); // location, count, transpose?, matrix data
-
-		int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		// Set uniforms for the transformation matrices	
+		ourShader.setMat4("view", view);
+		ourShader.setMat4("projection", projection); // Better to set outside of loop
 
 
 
 		// Since we only have one VAO, no need to bind every frame.
 		glBindVertexArray(VAO);
-		// Draws from vertex array. Primitive, how many vertices, type of indices, location.
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// Draw cubes.
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			ourShader.setMat4("model", model);
+			
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		
 		// Front render is what you see on screen. once the back render 
 		// finishes rendering it swaps with the front render. this avoids 
