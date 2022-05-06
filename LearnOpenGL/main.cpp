@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -13,11 +12,27 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-const int SCR_WIDTH = 800;
-const int SCR_HEIGHT = 600;
+const int SCR_WIDTH = 1600;
+const int SCR_HEIGHT = 1200;
 
 float mixValue = 0.2f;
+
+// camera
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+bool firstMouse = true;
+float lastX = 400;
+float lastY = 300;
+float yaw = -90.0f;
+float pitch = 0.0f;
+
 
 
 int main()
@@ -42,6 +57,8 @@ int main()
 	glfwMakeContextCurrent(window);
 	// Function to change window size when dragging window.
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	// Detect mouse movement
+	glfwSetCursorPosCallback(window, mouse_callback);
 
 	// glad just calls openGL functions in an easier way
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -55,6 +72,10 @@ int main()
 
 	// Set viewport inside the window
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+	// Enable depth buffer (Z index)
+	glEnable(GL_DEPTH_TEST);
+	// Hide cursor
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// -------------Shaders---------------
 	//
@@ -65,48 +86,48 @@ int main()
 	// Vertices for a triangle.
 	float vertices[] =
 	{
-		 // position            // texture
-		 -0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
-		  0.5f, -0.5f, -0.5f,   1.0f, 0.0f,
-		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
-		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
-		 -0.5f,  0.5f, -0.5f,   0.0f, 1.0f,
-		 -0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
+		// position            // texture
+		-0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,   1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,   0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
 
-		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
-		  0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
-		  0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
-		  0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
-		 -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,
-		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,   0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
 
-		 -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
-		 -0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
-		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
-		 -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
 
-		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
-		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
-		  0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-		  0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-		  0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
-		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
 
-		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-		  0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
-		  0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
-		  0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
-		 -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
-		 -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,   1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,   0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
 
-		 -0.5f,  0.5f, -0.5f,   0.0f, 1.0f,
-		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
-		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
-		  0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
-		 -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,
-		 -0.5f,  0.5f, -0.5f,   0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,   0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,   1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,   0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,   0.0f, 1.0f
 
 	};
 	// Order to connect vertices.
@@ -118,7 +139,7 @@ int main()
 
 	glm::vec3 cubePositions[] =
 	{
-		glm::vec3( 0.0f, -1.5f,  0.0f),
+		glm::vec3( 0.0f,  0.0f,  0.0f),
 		glm::vec3( 2.0f,  5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
 		glm::vec3(-3.8f, -2.0f, -12.3f),
@@ -145,11 +166,6 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	// Tell OpenGL how to interpret vertex data.
-	// Attribute position, size of attribute (Ex. vec3 is 3), type of data,
-	// whether to normalize data (0 to 1), stride: size of each vertex data, 
-	// offset of where position data begins.
-
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -170,7 +186,7 @@ int main()
 	// Define wrapping mode. 2D, S axis (texture is str not xyz), wrapping type outside 0 or 1.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	
+
 	// Define filter mode. Texture downscaled = nearest (no filter), upscaled = linear.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -219,18 +235,26 @@ int main()
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 
-	// Enable depth buffer (Z index)
-	glEnable(GL_DEPTH_TEST);
+	// Projection matrix
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	ourShader.setMat4("projection", projection);
+
 
 
 	//------------------------------Render Loop-----------------------------------
 	while (!glfwWindowShouldClose(window))
 	{
+
+		// preframe logic
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		// Input
 		processInput(window);
-
 		// Input change mix value
 		ourShader.setFloat("mixValue", mixValue);
+
 
 		// Sets the color when the color buffer is cleared.
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -241,29 +265,23 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-
 		// Activate shader program
 		ourShader.use();
+		// Since we only have one VAO, no need to bind every frame.
+		glBindVertexArray(VAO);
 
 
 		// ----------- Transformations -----------
 		// 
-		// Create model, view, and projection matrix
+		// Create camera movement
 		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 projection = glm::mat4(1.0f);
-
-		// Set uniform for matrices
-		view = glm::translate(view, glm::vec3(1.0f, 0.0f, -3.0f)); // moves away.
-		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-		// Set uniforms for the transformation matrices	
+		float radius = 5.0f;
+		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
+		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
+		// lookAt: camera location, camera point location, up vector
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		ourShader.setMat4("view", view);
-		ourShader.setMat4("projection", projection); // Better to set outside of loop
 
-
-
-		// Since we only have one VAO, no need to bind every frame.
-		glBindVertexArray(VAO);
 		// Draw cubes.
 		for (unsigned int i = 0; i < 10; i++)
 		{
@@ -272,13 +290,10 @@ int main()
 			float angle = 20.0f * i;
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			ourShader.setMat4("model", model);
-			
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		
-		// Front render is what you see on screen. once the back render 
-		// finishes rendering it swaps with the front render. this avoids 
-		// artifacts if using one buffer.
+
 		glfwSwapBuffers(window);
 		// Checks for input events.
 		glfwPollEvents();
@@ -301,12 +316,32 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // Input function to organize all the inputs.
 void processInput(GLFWwindow* window)
 {
+	// Movement
+	const float cameraSpeed = 2.5f * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		cameraPos += cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		cameraPos -= cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+
 	// Escape to close window.
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
 
+	// Change mix value of texture
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
 		mixValue += 0.01f;
@@ -323,4 +358,36 @@ void processInput(GLFWwindow* window)
 			mixValue = 0.0f;
 		}
 	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	const float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 direction;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(direction);
 }
