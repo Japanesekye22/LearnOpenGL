@@ -13,6 +13,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 const int SCR_WIDTH = 1600;
 const int SCR_HEIGHT = 1200;
@@ -21,17 +22,19 @@ float mixValue = 0.2f;
 
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); // Change with mouse 
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+// deltaTime variables
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 bool firstMouse = true;
-float lastX = 400;
-float lastY = 300;
-float yaw = -90.0f;
+float lastX = (float)SCR_WIDTH / 2.0; //initialize to center of screen
+float lastY = (float)SCR_HEIGHT / 2.0;
+float yaw = -90.0f; // Start in negative z axis
 float pitch = 0.0f;
+float fov = 45.0f;
 
 
 
@@ -57,8 +60,10 @@ int main()
 	glfwMakeContextCurrent(window);
 	// Function to change window size when dragging window.
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	// Detect mouse movement
+	// Run every frame the mouse moves
 	glfwSetCursorPosCallback(window, mouse_callback);
+	// Run everytime scrollwheel is moved
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// glad just calls openGL functions in an easier way
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -76,6 +81,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	// Hide cursor
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	// Wireframe
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //GL_LINE
 
 	// -------------Shaders---------------
 	//
@@ -235,9 +242,7 @@ int main()
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 
-	// Projection matrix
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-	ourShader.setMat4("projection", projection);
+
 
 
 
@@ -245,7 +250,7 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 
-		// preframe logic
+		// calculate deltaTime
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -273,6 +278,10 @@ int main()
 
 		// ----------- Transformations -----------
 		// 
+		// Projection matrix
+		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		ourShader.setMat4("projection", projection);
+
 		// Create camera movement
 		glm::mat4 view = glm::mat4(1.0f);
 		float radius = 5.0f;
@@ -360,34 +369,50 @@ void processInput(GLFWwindow* window)
 	}
 }
 
+// Callback function for mouse input.
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	// If first mouse input, set last as current to prevent camera skip
 	if (firstMouse)
 	{
 		lastX = xpos;
 		lastY = ypos;
 		firstMouse = false;
 	}
+	// Calculate offset between last and current mouse position
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos;
 	lastX = xpos;
 	lastY = ypos;
 
+	// Multiply by sensitivity
 	const float sensitivity = 0.1f;
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
 
+	// Add offset values to yaw and pitch
 	yaw += xoffset;
 	pitch += yoffset;
 
+	// Set constraints so camera doesn't over rotate on pitch
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
 
-	glm::vec3 direction;
+	// calculate cameraFront vector from mouse input
+	glm::vec3 direction; // Chapter 10.6 for explanation
 	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(direction);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	fov -= (float)yoffset;
+	if (fov < 1.0f)
+		fov = 1.0f;
+	if (fov > 45.0f)
+		fov = 45.0f;
 }
