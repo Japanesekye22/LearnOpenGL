@@ -19,8 +19,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const int SCR_WIDTH = 1600;
 const int SCR_HEIGHT = 1200;
 
-float mixValue = 0.2f;
-
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -238,8 +236,6 @@ int main()
 
 
 
-
-
 	//------------------------------Render Loop-----------------------------------
 	while (!glfwWindowShouldClose(window))
 	{
@@ -251,8 +247,6 @@ int main()
 
 		// Input
 		processInput(window);
-		// Input change mix value
-		ourShader.setFloat("mixValue", mixValue);
 
 
 		// Sets the color when the color buffer is cleared.
@@ -278,6 +272,7 @@ int main()
 
 		// Create camera movement
 		glm::mat4 view = camera.GetViewMatrix();
+		ourShader.setMat4("view", view);
 
 		// Draw cubes.
 		for (unsigned int i = 0; i < 10; i++)
@@ -328,32 +323,15 @@ void processInput(GLFWwindow* window)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-
-	// Change mix value of texture
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-	{
-		mixValue += 0.01f;
-		if (mixValue >= 1.0f)
-		{
-			mixValue = 1.0f;
-		}
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-	{
-		mixValue -= 0.01f;
-		if (mixValue <= 0.0f)
-		{
-			mixValue = 0.0f;
-		}
-	}
 }
 
 // Callback function for mouse input.
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-	float xpos = static_cast<float>(xpos);
-	float ypos = static_cast<float>(ypos);
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
 
+	// Prevent frame skip on first mouse input
 	if (firstMouse)
 	{
 		lastX = xpos;
@@ -361,6 +339,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		firstMouse = false;
 	}
 
+	// Calculate offset from last mouse position
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
