@@ -6,6 +6,7 @@
 
 #include "Classes/shader.h"
 #include "Classes/stb_image.h"
+#include "Classes/camera.h"
 
 #include <iostream>
 
@@ -20,21 +21,14 @@ const int SCR_HEIGHT = 1200;
 
 float mixValue = 0.2f;
 
-// camera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); // Change with mouse 
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
 
 // deltaTime variables
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
-bool firstMouse = true;
-float lastX = (float)SCR_WIDTH / 2.0; //initialize to center of screen
-float lastY = (float)SCR_HEIGHT / 2.0;
-float yaw = -90.0f; // Start in negative z axis
-float pitch = 0.0f;
-float fov = 45.0f;
 
 
 
@@ -279,17 +273,11 @@ int main()
 		// ----------- Transformations -----------
 		// 
 		// Projection matrix
-		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		ourShader.setMat4("projection", projection);
 
 		// Create camera movement
-		glm::mat4 view = glm::mat4(1.0f);
-		float radius = 5.0f;
-		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
-		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-		// lookAt: camera location, camera point location, up vector
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		ourShader.setMat4("view", view);
+		glm::mat4 view = camera.GetViewMatrix();
 
 		// Draw cubes.
 		for (unsigned int i = 0; i < 10; i++)
@@ -326,23 +314,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void processInput(GLFWwindow* window)
 {
 	// Movement
-	const float cameraSpeed = 2.5f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		cameraPos += cameraSpeed * cameraFront;
-	}
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		cameraPos -= cameraSpeed * cameraFront;
-	}
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	}
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	}
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 
 	// Escape to close window.
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -372,47 +351,26 @@ void processInput(GLFWwindow* window)
 // Callback function for mouse input.
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	// If first mouse input, set last as current to prevent camera skip
+	float xpos = static_cast<float>(xpos);
+	float ypos = static_cast<float>(ypos);
+
 	if (firstMouse)
 	{
 		lastX = xpos;
 		lastY = ypos;
 		firstMouse = false;
 	}
-	// Calculate offset between last and current mouse position
+
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
 	lastX = xpos;
 	lastY = ypos;
 
-	// Multiply by sensitivity
-	const float sensitivity = 0.1f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	// Add offset values to yaw and pitch
-	yaw += xoffset;
-	pitch += yoffset;
-
-	// Set constraints so camera doesn't over rotate on pitch
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-
-	// calculate cameraFront vector from mouse input
-	glm::vec3 direction; // Chapter 10.6 for explanation
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(direction);
+	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	fov -= (float)yoffset;
-	if (fov < 1.0f)
-		fov = 1.0f;
-	if (fov > 45.0f)
-		fov = 45.0f;
+	camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
