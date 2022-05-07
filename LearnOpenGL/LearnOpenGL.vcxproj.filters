@@ -31,6 +31,8 @@
   <ItemGroup>
     <None Include="Classes\shader.vs" />
     <None Include="Classes\shader.fs" />
+    <None Include="Classes\lightShader.vs" />
+    <None Include="Classes\lightShader.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\shader.h">

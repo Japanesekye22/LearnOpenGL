@@ -25,6 +25,8 @@
     <ClCompile Include="Classes\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Classes\lightShader.fs" />
+    <None Include="Classes\lightShader.vs" />
     <None Include="Classes\shader.fs" />
     <None Include="Classes\shader.vs" />
   </ItemGroup>
