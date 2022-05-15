@@ -96,13 +96,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\ExternalLibraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\ExternalLibraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\ExternalLibraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\ExternalLibraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
