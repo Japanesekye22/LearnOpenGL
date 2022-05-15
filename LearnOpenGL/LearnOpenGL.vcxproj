@@ -19,16 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Classes\camera.cpp" />
     <ClCompile Include="Classes\shader.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Classes\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Classes\lightShader.fs" />
-    <None Include="Classes\lightShader.vs" />
-    <None Include="Classes\shader.fs" />
-    <None Include="Classes\shader.vs" />
+    <None Include="Classes\lightShader.frag" />
+    <None Include="Classes\lightShader.vert" />
+    <None Include="Classes\shader.frag" />
+    <None Include="Classes\shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\camera.h" />
