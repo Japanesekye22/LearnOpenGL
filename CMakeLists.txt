@@ -4,4 +4,4 @@ cmake_minimum_required(VERSION 3.10)
 project(LearnOpenGL)
 
 # add the executable
-add_executable(main main.cpp)
+add_executable(main LearnOpenGL/main.cpp)
