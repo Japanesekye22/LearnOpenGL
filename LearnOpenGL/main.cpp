@@ -15,6 +15,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+unsigned int loadTexture(char const* path);
 
 const int SCR_WIDTH = 1920;
 const int SCR_HEIGHT = 1080;
@@ -141,6 +142,9 @@ int main()
 	// normal attrib
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// texture coordinate attrib
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	// Light object
 	unsigned int lightVAO;
@@ -149,6 +153,16 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	// load textures
+	unsigned int diffuseMap = loadTexture("Images/container2.png");
+	unsigned int specularMap = loadTexture("Images/container2_specular.png");
+
+	// map texture maps
+	ourShader.use();
+	ourShader.setInt("material.diffuse", 0);
+	ourShader.setInt("material.specular", 1);
+	ourShader.setFloat("brightness", 1.2);
 
 
 
@@ -164,46 +178,58 @@ int main()
 		// Input
 		processInput(window);
 
-
 		// Sets the color when the color buffer is cleared.
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffer
 
-		// Activate shader program
+
+
+		// -------------- Lighting ---------------
+		//
+
+		// Set light color attributes
+		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f);
+		glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
+
+
 		ourShader.use();
-		ourShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-		ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-		ourShader.setVec3("lightPos", lightPos);
+		ourShader.setFloat("material.shininess", 32.0f);
+		ourShader.setVec3("light.position", lightPos);
+		ourShader.setVec3("light.ambient", ambientColor);
+		ourShader.setVec3("light.diffuse", diffuseColor);
+		ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 		ourShader.setVec3("viewPos", camera.Position);
 
 
 		// ----------- Transformations -----------
 		// 
-		// Projection matrix
 		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		ourShader.setMat4("projection", projection);
-		// Create camera movement
 		glm::mat4 view = camera.GetViewMatrix();
+		// Draw cube
+		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
-		// World transformation
 		glm::mat4 model = glm::mat4(1.0f);
 		ourShader.setMat4("model", model);
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
+
 		// Draw light object
 		lightShader.use();
+		lightShader.setVec3("Color", lightColor);
 		lightShader.setMat4("projection", projection);
 		lightShader.setMat4("view", view);
 		model = glm::mat4(1.0f);
-		//lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-		//lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
 		lightShader.setMat4("model", model);
-
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -278,4 +304,47 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+unsigned int loadTexture(char const* path)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+
+	int width, height, nrComponents;
+	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+	if (data)
+	{
+		GLenum format;
+		if (nrComponents == 1)
+		{
+			format = GL_RED;
+		}
+		else if (nrComponents == 3)
+		{
+			format = GL_RGB;
+		}
+		else if (nrComponents == 4)
+		{
+			format = GL_RGBA;
+		}
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		stbi_image_free(data);
+	}
+	else
+	{
+		std::cout << "Texture failed to load at path: " << path << std::endl;
+		stbi_image_free(data);
+	}
+
+	return textureID;
 }
