@@ -128,6 +128,19 @@ int main()
 		-0.5f,  0.5f,  0.5f,   0.0f,  1.0f,  0.0f,   0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,   0.0f,  1.0f,  0.0f,   0.0f, 1.0f
 	};
+	// positions all containers
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
 
 	// Generate buffers and vertex array.
 	unsigned int VBO, VAO;
@@ -187,19 +200,24 @@ int main()
 		// -------------- Lighting ---------------
 		//
 
-		// Set light color attributes
-		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f);
-		glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
-
-
+		// activate shader
 		ourShader.use();
-		ourShader.setFloat("material.shininess", 32.0f);
-		ourShader.setVec3("light.position", lightPos);
-		ourShader.setVec3("light.ambient", ambientColor);
-		ourShader.setVec3("light.diffuse", diffuseColor);
-		ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		ourShader.setVec3("light.position", camera.Position);
+		ourShader.setVec3("light.direction", camera.Front);
+		ourShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		ourShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 		ourShader.setVec3("viewPos", camera.Position);
+
+		// light properties
+		ourShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+		ourShader.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		ourShader.setFloat("light.constant", 1.0f);
+		ourShader.setFloat("light.linear", 0.09f);
+		ourShader.setFloat("light.quadratic", 0.032f);
+
+		// material properties
+		ourShader.setFloat("material.shininess", 32.0f);
 
 
 		// ----------- Transformations -----------
@@ -209,6 +227,7 @@ int main()
 		// Draw cube
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
+
 		glm::mat4 model = glm::mat4(1.0f);
 		ourShader.setMat4("model", model);
 
@@ -216,14 +235,24 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
+
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle),glm::vec3(1.0f, 0.3f, 0.5f));
+			ourShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 
 		// Draw light object
 		lightShader.use();
-		lightShader.setVec3("Color", lightColor);
+		lightShader.setVec3("Color", glm::vec3(1.0f));
 		lightShader.setMat4("projection", projection);
 		lightShader.setMat4("view", view);
 		model = glm::mat4(1.0f);
