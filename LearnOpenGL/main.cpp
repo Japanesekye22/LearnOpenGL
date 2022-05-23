@@ -86,10 +86,11 @@ int main()
 
 	// -------------Shaders---------------
 	//
-	Shader ourShader("Classes/otherShader.vert", "Classes/otherShader.frag");
+	Shader ourShader("Classes/shader.vert", "Classes/shader.frag");
 
 	// --------------Model----------------
 	Model ourModel("Models/backpack/backpack.obj");
+	Model lightbulbModel("Models/lightbulb/lightbulb.obj");
 
 
 
@@ -115,6 +116,23 @@ int main()
 
 		// activate shader
 		ourShader.use();
+		ourShader.setVec3("viewPos", camera.Position);
+		ourShader.setFloat("material.shininess", 32.0f);
+
+		// direction light
+		ourShader.setVec3("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+		ourShader.setVec3("dirLight.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		ourShader.setVec3("dirLight.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
+		ourShader.setVec3("dirLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+
+		// point light
+		ourShader.setVec3("pointLight.position", lightPos);
+		ourShader.setVec3("pointLight.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+		ourShader.setVec3("pointLight.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+		ourShader.setVec3("pointLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		ourShader.setFloat("pointLight.constant", 1.0f);
+		ourShader.setFloat("pointLight.linear", 0.09f);
+		ourShader.setFloat("pointLight.quadratic", 0.032f);
 
 		// ----------- Transformations -----------
 		// 
@@ -123,12 +141,19 @@ int main()
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
 
-		// draw model
+		// draw main model
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		ourShader.setMat4("model", model);
 		ourModel.Draw(ourShader);
+
+		// draw lightbulb model
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+		ourShader.setMat4("model", model);
+		lightbulbModel.Draw(ourShader);
 
 		glfwSwapBuffers(window);
 		// Checks for input events.
@@ -198,6 +223,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
+// dont really need since model object does this
 unsigned int loadTexture(char const* path)
 {
 	unsigned int textureID;

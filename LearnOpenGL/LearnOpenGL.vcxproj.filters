@@ -30,12 +30,16 @@
     <ClCompile Include="Classes\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Classes\mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Classes\shader.vert" />
     <None Include="Classes\shader.frag" />
-    <None Include="Classes\otherShader.vert" />
-    <None Include="Classes\otherShader.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\shader.h">

@@ -20,14 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Classes\camera.cpp" />
+    <ClCompile Include="Classes\mesh.cpp" />
+    <ClCompile Include="Classes\model.cpp" />
     <ClCompile Include="Classes\shader.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Classes\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Classes\otherShader.frag" />
-    <None Include="Classes\otherShader.vert" />
     <None Include="Classes\shader.frag" />
     <None Include="Classes\shader.vert" />
   </ItemGroup>
