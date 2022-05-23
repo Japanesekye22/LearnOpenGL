@@ -34,8 +34,8 @@
   <ItemGroup>
     <None Include="Classes\shader.vert" />
     <None Include="Classes\shader.frag" />
-    <None Include="Classes\lightShader.vert" />
-    <None Include="Classes\lightShader.frag" />
+    <None Include="Classes\otherShader.vert" />
+    <None Include="Classes\otherShader.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\shader.h">
@@ -45,6 +45,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Classes\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
