@@ -26,10 +26,17 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Classes\stb_image.cpp" />
+    <ClCompile Include="vendor\imgui\imgui.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Classes\shader.frag" />
-    <None Include="Classes\shader.vert" />
+    <None Include="Shaders\shader.frag" />
+    <None Include="Shaders\shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\camera.h" />
@@ -37,6 +44,14 @@
     <ClInclude Include="Classes\model.h" />
     <ClInclude Include="Classes\shader.h" />
     <ClInclude Include="Classes\stb_image.h" />
+    <ClInclude Include="vendor\imgui\imconfig.h" />
+    <ClInclude Include="vendor\imgui\imgui.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -98,12 +113,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\japan\Desktop\Projects\LearnOpenGL\LearnOpenGL\vendor;C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\japan\Desktop\Projects\LearnOpenGL\LearnOpenGL\vendor;C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\japan\Desktop\Projects\LearnOpenGL\Dependencies\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -149,6 +164,12 @@
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(ProjectDir)assimp-vc143-mtd.dll" "$(OutDir)"
+xcopy /y /s /e /I "$(ProjectDir)Models" "$(OutDir)Models"
+xcopy /y /s /e /I "$(ProjectDir)Images" "$(OutDir)Images"
+xcopy /y /s /e /I "$(ProjectDir)Shaders" "$(OutDir)Shaders"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

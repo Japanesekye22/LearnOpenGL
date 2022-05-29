@@ -3,6 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 #include "Classes/shader.h"
 #include "Classes/stb_image.h"
@@ -31,6 +34,8 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+bool rightPressed = false;
+
 // World space location of light
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
@@ -42,6 +47,7 @@ int main()
 	// Initializes glfw
 	glfwInit();
 	// Tells glfw what version of opengl to use. this case: 4.6 Core
+	const char* glsl_version = "#version 460";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -80,17 +86,28 @@ int main()
 	// Enable depth buffer (Z index)
 	glEnable(GL_DEPTH_TEST);
 	// Hide cursor
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	// Wireframe
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //GL_LINE
 
 	// -------------Shaders---------------
 	//
-	Shader ourShader("Classes/shader.vert", "Classes/shader.frag");
+	Shader ourShader("Shaders/shader.vert", "Shaders/shader.frag");
 
 	// --------------Model----------------
 	Model ourModel("Models/backpack/backpack.obj");
 	Model lightbulbModel("Models/lightbulb/lightbulb.obj");
+
+
+	// --------------imgui----------------
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+
+	ImGui::StyleColorsDark();
 
 
 
@@ -109,6 +126,18 @@ int main()
 		// Sets the color when the color buffer is cleared.
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffer
+
+		// ----------------imgui------------------
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::Begin("Demo window");
+		ImGui::SliderFloat("translation", &lightPos.x, -5, 10);
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
 		// -------------- Lighting ---------------
@@ -137,9 +166,13 @@ int main()
 		// ----------- Transformations -----------
 		// 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
+		if (rightPressed)
+		{
+			glm::mat4 view = camera.GetViewMatrix();
+			ourShader.setMat4("view", view);
+		}
 		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
+		
 
 		// draw main model
 		glm::mat4 model = glm::mat4(1.0f);
@@ -160,6 +193,9 @@ int main()
 		glfwPollEvents();
 	}
 
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	glfwTerminate();
 	return 0;
 }
@@ -186,6 +222,18 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWN, deltaTime);
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		rightPressed = true;
+	}
+		
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		rightPressed = false;
+	}
+		
 
 	// Escape to close window.
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)

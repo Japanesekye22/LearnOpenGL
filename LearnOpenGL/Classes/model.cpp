@@ -16,7 +16,7 @@ void Model::Draw(Shader& shader)
 // load model into Assimp Scene object
 void Model::loadModel(std::string const& path)
 {
-    // read 3D model with Assimp, set pointer to the object data.
+    // read 3D model with Assimp, set scene object
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     // check for errors
@@ -58,7 +58,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
 
-    // set each vertex attributes
+    // process vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
