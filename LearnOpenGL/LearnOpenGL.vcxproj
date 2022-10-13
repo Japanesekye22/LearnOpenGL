@@ -35,6 +35,8 @@
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assimp-vc143-mtd.dll" />
+    <None Include="imgui.ini" />
     <None Include="Shaders\shader.frag" />
     <None Include="Shaders\shader.vert" />
   </ItemGroup>
