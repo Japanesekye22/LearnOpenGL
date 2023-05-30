@@ -46,8 +46,8 @@
     <IntDir>..\bin-int\$(Configuration)-$(Platform)\NewOpenGL\</IntDir>
     <TargetName>NewOpenGL</TargetName>
     <TargetExt>.exe</TargetExt>
-    <IncludePath>C:\Users\japan\OneDrive\Desktop\LearnOpenGL\NewOpenGL\dependencies\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\japan\OneDrive\Desktop\LearnOpenGL\NewOpenGL\dependencies\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Kye\Desktop\LearnOpenGL\NewOpenGL\dependencies\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Kye\Desktop\LearnOpenGL\NewOpenGL\dependencies\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
