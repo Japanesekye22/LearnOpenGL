@@ -59,22 +59,21 @@ int main()
 
 	// --- Create Shader Program ----------------------------------------------
 	// Compile vertex shader
-	unsigned int vertexShader;
+	unsigned int vertexShader, fragShader, shaderProgram;
+
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
 	// Compile fragment shaders
-	unsigned int fragShader;
 	fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragShader);
 	// Link shaders into a shader program
-	unsigned int shaderProgram;
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragShader);
 	glLinkProgram(shaderProgram);
-	glDeleteShader(vertexShader); // Delete shaders once linked.
+	glDeleteShader(vertexShader); // Dont need shaders once linked.
 	glDeleteShader(fragShader);
 	glUseProgram(shaderProgram);
 
@@ -82,17 +81,29 @@ int main()
 	// 2D coordinates for a triangle
 	float vertices[] =
 	{
+		0.5f, 0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
 		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f
+		-0.5f, 0.5f, 0.0f
+	};
+
+	unsigned int indices[] =
+	{
+		0, 1, 3,
+		1, 2, 3
 	};
 
 	// Create VBO Buffer Object
-	unsigned int VBO, VAO;
+	unsigned int VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind VBO to array buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Link data with VBO
 	// Specify vertex data format
 	// layout location, size of vertex, datatype, isNormalized, vertex spacing, beginning offset.
@@ -112,7 +123,7 @@ int main()
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// Events and swap buffers
 		glfwSwapBuffers(window);
