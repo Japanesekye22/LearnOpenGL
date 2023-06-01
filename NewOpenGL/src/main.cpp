@@ -6,17 +6,20 @@
 const char* vertexShaderSource = 
 "#version 460 core\n"
 "layout (location = 0) in vec3 aPos;\n" // Takes in vec3
+"out vec4 vertexColor;"
 "void main()\n"
 "{\n"
-	" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n" // gl_Position predefined.
+	" gl_Position = vec4(aPos, 1.0);\n" // gl_Position predefined.
+	" vertexColor = vec4(0.5, 0.0, 0.0, 1.0);"
 "}\0";
 
 const char* fragmentShaderSource =
 "#version 460 core\n"
 "out vec4 FragColor;\n" // Takes in vec3
+"uniform vec4 ourColor;"
 "void main()\n"
 "{\n"
-" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n" // gl_Position predefined.
+" FragColor = ourColor;\n" // gl_Position predefined.
 "}\0";
 
 // Our own function to resize viewport.
@@ -120,6 +123,13 @@ int main()
 		// Rendering
 		glClearColor(0.3f, 0.3f, 0.4f, 1);
 		glClear(GL_COLOR_BUFFER_BIT); // Clears color bits. Can also clear depth
+
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+		glUseProgram(shaderProgram);
+		glUniform4f(vertexColorLocation, 0.5f, greenValue, 0.0f, 1.0f);
+
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
