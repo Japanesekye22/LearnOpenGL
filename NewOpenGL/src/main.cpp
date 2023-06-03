@@ -44,6 +44,11 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// --- Render Triangle ----------------------------------------------------
+	 
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
 	// 2D coordinates for a triangle
 	float vertices[] =
 	{
@@ -59,12 +64,10 @@ int main()
 	};
 
 	// Create VBO Buffer Object
-	unsigned int VBO, VAO, EBO;
-	glGenVertexArrays(1, &VAO);
+	unsigned int VBO, EBO;
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind VBO to array buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	
@@ -99,8 +102,7 @@ int main()
 		glfwPollEvents();
 	}
 	
-
-
+	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
 }
