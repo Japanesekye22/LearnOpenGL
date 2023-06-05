@@ -8,6 +8,8 @@
 
 #include "Shader.h"
 
+float mixValue = 0.2f;
+
 // Our own function to resize viewport.
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -18,6 +20,12 @@ void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		if (mixValue < 1)
+			mixValue += 0.001f;
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		if (mixValue > 0)
+			mixValue -= 0.001f;
 }
 
 int main()
@@ -56,7 +64,7 @@ int main()
 	// --- Vertex Buffer ---
 	float vertices[] =
 	{
-		// positions        // colors
+		// positions        // colors         // texture
 		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
 		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
 		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
@@ -87,6 +95,7 @@ int main()
 
 	// --- Shaders ---
 	Shader ourShader("src/Shaders/vertexShader.vs", "src/Shaders/fragmentShader.fs");
+	ourShader.use();
 
 	// --- Textures ---
 	float texCoords[] = 
@@ -99,8 +108,10 @@ int main()
 	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	// Sets texture filtering. 
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	stbi_set_flip_vertically_on_load(true);
+
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
 	unsigned int texture;
@@ -109,6 +120,18 @@ int main()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(data);
+
+	data = stbi_load("resources/awesomeface.png", &width, &height, &nrChannels, 0);
+	unsigned int texture2;
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(data);
+
+	ourShader.setInt("texture1", 0);
+	ourShader.setInt("texture2", 1);
+
 
 
 	// --- Run-loop -----------------------------------------------------------
@@ -121,9 +144,14 @@ int main()
 		glClearColor(0.3f, 0.3f, 0.4f, 1);
 		glClear(GL_COLOR_BUFFER_BIT); // Clears color bits. Can also clear depth
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		ourShader.setFloat("mixValue", mixValue);
 		ourShader.use();
 		glBindVertexArray(VAO);
-		glBindTexture(GL_TEXTURE_2D, texture);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// Events and swap buffers
