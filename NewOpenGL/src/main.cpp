@@ -1,7 +1,10 @@
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+#include "stb/stb_image.h"
 
 #include "Shader.h"
 
@@ -44,43 +47,68 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// --- Render Triangle ----------------------------------------------------
-	 
+	
+	// --- Vertex Array ---
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	// 2D coordinates for a triangle
+	// --- Vertex Buffer ---
 	float vertices[] =
 	{
 		// positions        // colors
-		 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-		 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f  // top
+		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+		-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
 	};
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind VBO to array buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Link data with VBO
 
+	// --- Index Buffer ---
 	unsigned int indices[] =
 	{
-		0, 1, 2
+		0, 1, 2, 0, 2, 3
 	};
-
-	// Create VBO Buffer Object
-	unsigned int VBO, EBO;
-	glGenBuffers(1, &VBO);
+	unsigned int EBO;
 	glGenBuffers(1, &EBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind VBO to array buffer
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Link data with VBO
-	// Specify vertex data format
-	// layout location, size of vertex, datatype, isNormalized, vertex spacing, beginning offset.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
+	// --- layout --- 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+	// --- Shaders ---
 	Shader ourShader("src/Shaders/vertexShader.vs", "src/Shaders/fragmentShader.fs");
+
+	// --- Textures ---
+	float texCoords[] = 
+	{
+		0.0f, 0.0f, // lower-left corner
+		1.0f, 0.0f, // lower-right corner
+		0.5f, 1.0f // top-center corner
+	};
+	// Sets texture behavior when texture coords exceed -1, 1
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	// Sets texture filtering. 
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(data);
 
 
 	// --- Run-loop -----------------------------------------------------------
@@ -95,7 +123,8 @@ int main()
 
 		ourShader.use();
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// Events and swap buffers
 		glfwSwapBuffers(window);
