@@ -6,6 +6,10 @@
 #include "GLFW/glfw3.h"
 #include "stb/stb_image.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 
 float mixValue = 0.2f;
@@ -111,7 +115,7 @@ int main()
 	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	stbi_set_flip_vertically_on_load(true);
-
+	// Texture 1
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
 	unsigned int texture;
@@ -120,7 +124,7 @@ int main()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(data);
-
+	// Texture 2
 	data = stbi_load("resources/awesomeface.png", &width, &height, &nrChannels, 0);
 	unsigned int texture2;
 	glGenTextures(1, &texture2);
@@ -143,6 +147,15 @@ int main()
 		// Rendering
 		glClearColor(0.3f, 0.3f, 0.4f, 1);
 		glClear(GL_COLOR_BUFFER_BIT); // Clears color bits. Can also clear depth
+
+		// Create an identity matrix first. Then apply transformations
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+		trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+		unsigned int transformLocation = glGetUniformLocation(ourShader.getID(), "transform");
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
