@@ -14,8 +14,8 @@
 
 float mixValue = 0.2f;
 
-float screenWidth = 1920;
-float screenHeight = 1080;
+unsigned int screenWidth = 1920;
+unsigned int screenHeight = 1080;
 
 // Our own function to resize viewport.
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -59,6 +59,7 @@ int main()
 	}
 	// Set opengl context within GLFW window. Origin lower left
 	glViewport(0, 0, screenWidth, screenHeight);
+	glEnable(GL_DEPTH_TEST);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
@@ -186,22 +187,37 @@ int main()
 	stbi_image_free(data);
 
 
+	// --- More cubes ---
+	glm::vec3 cubePositions[] = 
+	{
+		glm::vec3( 0.0f,  0.0f,   0.0f),
+		glm::vec3( 2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f,  -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3( 2.4f, -0.4f,  -3.5f),
+		glm::vec3(-1.7f,  3.0f,  -7.5f),
+		glm::vec3( 1.3f, -2.0f,  -2.5f),
+		glm::vec3( 1.5f,  2.0f,  -2.5f),
+		glm::vec3( 1.5f,  0.2f,  -1.5f),
+		glm::vec3(-1.3f,  1.0f,  -1.5f)
+	};
 
-	// --- Transformations ---
-	// Model
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	ourShader.setMat4("model", model);
-	// View
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-	ourShader.setMat4("view", view);
-	// Projection
-	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-	ourShader.setMat4("projection", projection);
 
-	glEnable(GL_DEPTH_TEST);
+
+	// --- Camera ---
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+	
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+	glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+	glm::mat4 view;
+	view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),
+					   glm::vec3(0.0f, 0.0f, 0.0f),
+					   glm::vec3(0.0f, 1.0f, 0.0f));
+
 
 
 	// --- Run-loop -----------------------------------------------------------
@@ -221,15 +237,35 @@ int main()
 
 		ourShader.setFloat("mixValue", mixValue);
 		ourShader.use();
-
-		// --- transformations ---
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.5f, 0.0f));
-		ourShader.setMat4("model", model);
-
+		
 		glBindVertexArray(VAO);
+
+		// --- Transformations ---
+		// Model
+		
+		// View
+		const float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+		glm::mat4 view = glm::mat4(1.0f);
+		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		ourShader.setMat4("view", view);
+		// Projection
+		glm::mat4 projection;
+		projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		ourShader.setMat4("projection", projection);
+
+
 		//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i * glfwGetTime();
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.5f, 0.3f));
+			ourShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		// Events and swap buffers
 		glfwSwapBuffers(window);
